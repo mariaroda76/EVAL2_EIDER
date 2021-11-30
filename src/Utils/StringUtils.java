@@ -17,7 +17,6 @@ public final class StringUtils {
         return (str == null ? null : str.trim());
     }
 
-
     public static boolean isEmpty(String str) {
         if (str == null) {
             return true;
@@ -27,7 +26,6 @@ public final class StringUtils {
         }
         return false;
     }
-
 
     public static String replace(String text, String repl, String with) {
         return replace(text, repl, with, -1);
