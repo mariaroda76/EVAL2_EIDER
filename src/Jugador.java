@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,9 +29,9 @@ public class Jugador {
     private String apellido;
     private int edad;
     private String nick;
-    private String password;
+    private char[] password;
 
-    public Jugador(String nombre, String apellido, int edad, String nick, String password) {
+    public Jugador(String nombre, String apellido, int edad, String nick, char[] password) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.edad = edad;
@@ -52,7 +53,7 @@ public class Jugador {
 
             while (fallido) {
                 System.out.println ("Buenas!! ingresa tus datos:");
-
+                //solicito nombre
                 while (fallido) {
                     System.out.println ("Ingresa tu nombre:");
                     String nombre = input.nextLine ();
@@ -65,9 +66,68 @@ public class Jugador {
                     }
                 }
                 fallido = true;
+                //solicito apellido
+                while (fallido) {
+                    System.out.println ("Ingresa tu apellido:");
+                    String apellido = input.nextLine ();
+                    if (RegexUtils.matches (apellido, RegexUtils.NOMBRE_APELLIDO)) {
+                        jugador.setApellido (apellido);
+                        System.out.println ("has ingresado " + apellido);
+                        fallido = false;
+                    } else {
+                        System.out.println ("EL APELLIDO NO PUEDE ESTAR VACIO, Y DEBE SER ALFABETICO");
+                    }
+                }
+                fallido = true;
+                //solicito edad
+                while (fallido) {
+                    System.out.println ("Ingresa tu edad:");
+                    String edad = input.nextLine ();
+                    if ((RegexUtils.matches (edad, RegexUtils.NON_NEGATIVE_INTEGER_FORMAT)) && Integer.parseInt (edad) > 17 && Integer.parseInt (edad) < 110) {
+                        jugador.setEdad (Integer.parseInt (edad));
+                        System.out.println ("has ingresado " + edad);
+                        fallido = false;
+                    } else {
+                        System.out.println ("LA EDAD DEBE SER UN NUMERO Y ESTAR COMPRENDIDA ENTRE 18 Y 109");
+                    }
+                }
+                fallido = true;
+                //solicito nick
+                while (fallido) {
+                    System.out.println ("Ingresa tu NICK:");
+                    String nick = input.nextLine ();
+                    if (RegexUtils.matches (nick, RegexUtils.TEXT_FORMAT)) {
+                        jugador.setNick (nick);
+                        System.out.println ("has ingresado " + nick);
+                        fallido = false;
+                    } else {
+                        System.out.println ("EL NICK NO PUEDE ESTAR VACIO, Y PUEDE SER ALFANUMERICO");
+                    }
+                }
+                fallido = true;
+                //solicito pass
+                while (fallido) {
+                    System.out.println ("Ingresa tu password: (8 CARACTERES, UN NUMERO, UNA MAYUSCULA Y UN CARACTER ESPECIAL)");
+                    String passTemp = input.nextLine ();
+                    if (!RegexUtils.matches (passTemp, RegexUtils.PASSWORD_REGEX)) {
 
+                        ////////////////////////////////////probar si lo puedo encriprar guardar y comprobar encriptado por ahora va como char []
+                        char[] pass = passTemp.toCharArray ();
+                        jugador.setPassword (pass);
+                        ////////////////////////////////////
 
+                        StringBuilder texto = new StringBuilder();
+                        for (int i = 0; i < pass.length; i++) {
+                            texto.append("*");
+                        }
+                        System.out.println ("has ingresado: " + texto);
+                        fallido = false;
+                    } else {
+                        System.out.println ("EL PASSWORD DEBE CONTENER AL MENOS: 8 CARACTERES, UN NUMERO, UNA MAYUSCULA Y UN CARACTER ESPECIAL");
+                    }
+                }
             }
+
 
 
             // Crea el cliente
@@ -89,6 +149,9 @@ public class Jugador {
             // /////////////////////////////////////////////////////////////////////////
             // Crea el socket y solicita conexion
             cliente = new Socket ("localhost", PUERTO);
+            //COMIENZO CON los flujos
+            //PROBAR SI PUEDO COMPROBAR SI NICK YA UTILIZADO..SI ME DA EL TIEMPO
+
 
             //creamos los flujos
             ObjectInputStream ois = new ObjectInputStream (cliente.getInputStream ());
@@ -162,13 +225,12 @@ public class Jugador {
         this.nick = nick;
     }
 
-    public String getPassword() {
+
+    public char[] getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(char[] password) {
         this.password = password;
     }
-
-
 }

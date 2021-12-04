@@ -19,6 +19,15 @@ public class RegexUtils {
     public static final String NON_EMPTY_ALPHA_NUMERIC_STRING = "\\w?";
     public static final String TELEPHONE_REGEX = "[0-9\\-]*";
 
+    //pply DeMorgan's theorem, and write a regex that matches invalid passwords:
+    // anything with less than eight characters OR anything with no numbers OR anything with no uppercase
+    // OR or anything with no lowercase OR anything with no special characters.
+    public static final String PASSWORD_REGEX = "^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$";
+
+
+
+
+
     public static boolean matches(String input, String regex) {
 
         if (StringUtils.isEmpty(input)) {
