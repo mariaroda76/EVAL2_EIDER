@@ -1,14 +1,11 @@
 import Utils.RegexUtils;
-import Utils.StringUtils;
 
 import javax.crypto.*;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import javax.crypto.spec.IvParameterSpec;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.*;
-import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,22 +21,6 @@ public class Jugador {
     private byte[] mensajeEnviadoCifrado;
 
 
-    private String nombre;
-    private String apellido;
-    private int edad;
-    private String nick;
-    private char[] password;
-
-    public Jugador(String nombre, String apellido, int edad, String nick, char[] password) {
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.edad = edad;
-        this.nick = nick;
-        this.password = password;
-    }
-
-    public Jugador() {
-    }
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, ClassNotFoundException {
         try {
@@ -48,7 +29,8 @@ public class Jugador {
             //hasta que no cumplete bien los datos o decida salir estará en el while
             boolean fallido = true;
             Scanner input = new Scanner (System.in);
-            Jugador jugador = new Jugador ();
+            JugadorModel jugadorM = new JugadorModel ();
+            Jugador jugador = new Jugador();
 
             while (fallido) {
                 System.out.println ("Buenas!! ingresa tus datos:");
@@ -57,7 +39,7 @@ public class Jugador {
                     System.out.println ("Ingresa tu nombre:");
                     String nombre = input.nextLine ();
                     if (RegexUtils.matches (nombre, RegexUtils.NOMBRE_APELLIDO)) {
-                        jugador.setNombre (nombre);
+                        jugadorM.setNombre (nombre);
                         System.out.println ("has ingresado " + nombre);
                         fallido = false;
                     } else {
@@ -70,7 +52,7 @@ public class Jugador {
                     System.out.println ("Ingresa tu apellido:");
                     String apellido = input.nextLine ();
                     if (RegexUtils.matches (apellido, RegexUtils.NOMBRE_APELLIDO)) {
-                        jugador.setApellido (apellido);
+                        jugadorM.setApellido (apellido);
                         System.out.println ("has ingresado " + apellido);
                         fallido = false;
                     } else {
@@ -83,7 +65,7 @@ public class Jugador {
                     System.out.println ("Ingresa tu edad:");
                     String edad = input.nextLine ();
                     if ((RegexUtils.matches (edad, RegexUtils.NON_NEGATIVE_INTEGER_FORMAT)) && Integer.parseInt (edad) > 17 && Integer.parseInt (edad) < 110) {
-                        jugador.setEdad (Integer.parseInt (edad));
+                        jugadorM.setEdad (Integer.parseInt (edad));
                         System.out.println ("has ingresado " + edad);
                         fallido = false;
                     } else {
@@ -96,7 +78,7 @@ public class Jugador {
                     System.out.println ("Ingresa tu NICK:");
                     String nick = input.nextLine ();
                     if (RegexUtils.matches (nick, RegexUtils.TEXT_FORMAT)) {
-                        jugador.setNick (nick);
+                        jugadorM.setNick (nick);
                         System.out.println ("has ingresado " + nick);
                         fallido = false;
                     } else {
@@ -112,7 +94,7 @@ public class Jugador {
 
                         ////////////////////////////////////probar si lo puedo encriprar guardar y comprobar encriptado por ahora va como char []
                         char[] pass = passTemp.toCharArray ();
-                        jugador.setPassword (pass);
+                        jugadorM.setPassword (pass);
                         ////////////////////////////////////
 
                         StringBuilder texto = new StringBuilder ();
@@ -127,11 +109,8 @@ public class Jugador {
                 }
             }
 
-            // Crea el cliente
-            Jugador c = new Jugador ();
-
             //una vez creado, conecto con el servidor y le envio el cliente
-            c.initClient (c);
+            jugador.initClient (jugadorM);
 
         } catch (InvalidKeyException ex) {
             Logger.getLogger (Jugador.class.getName ()).log (Level.SEVERE, null, ex);
@@ -143,7 +122,7 @@ public class Jugador {
     }
 
 
-    public void initClient(Jugador c) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
+    public void initClient(JugadorModel c) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
         try {
 
             // /////////////////////////////////////////////////////////////////////////
@@ -161,32 +140,53 @@ public class Jugador {
             ObjectOutputStream oos = new ObjectOutputStream (cliente.getOutputStream ());
             ObjectInputStream ois = new ObjectInputStream (cliente.getInputStream ());
 
-            System.out.println("Leemos la clave");
-            //obtenemos la clave publica
-            PublicKey clave=(PublicKey) ois.readObject();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1A) ENTRA clave
-            System.out.println("La clave recibida es: "+clave);
+            System.out.println (c.getNick () + ": 1a) Leyendo la clave publica recibida por el server para iniciar comunicacion segura.");
 
+
+            //IN
+            //obtenemos la clave publica
+            PublicKey clave = (PublicKey) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1A) ENTRA clave
+            System.out.println (c.getNick () + ": La clave recibida es: " + clave);
+
+
+
+            //OUT
+            //SALIDA INFO JUGADOR AL SERVER
+            System.out.println (c.getNick () + ": 1b) enviando info de jugador al server.....");
+
+            Cipher cipher = Cipher.getInstance ("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, clave);
+            //directamente cifrarlo en un array de bytes
+
+            SealedObject jugadorCipher = new SealedObject(c, cipher);
+            oos.writeObject(jugadorCipher);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1B) sale info jugador
+
+
+
+            //IN
             //Leo mensaje intrucciones plano
-            String mensaje= ois.readObject().toString();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2A) ENTRA instruccion plana
-            System.out.println("mensaje: "+ mensaje);
+            String mensaje = ois.readObject ().toString ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2A) ENTRA instruccion plana
+            System.out.println (c.getNick () + ": 2a) Instrucciones recibidas: " + mensaje);
 
             //Verificamos la firma
-            System.out.println("Verifico firma");
-            Signature verificadsa = Signature.getInstance("SHA1WITHRSA");
-            verificadsa.initVerify(clave);
+            System.out.println (c.getNick () + ": 3a) Verificando firma...");
+            Signature verificadsa = Signature.getInstance ("SHA1WITHRSA");
+            verificadsa.initVerify (clave);
 
-            verificadsa.update(mensaje.getBytes());
-            byte[] firma= (byte[]) ois.readObject();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<3A) ENTRA firma
-            boolean check = verificadsa.verify(firma);
+            verificadsa.update (mensaje.getBytes ());
+            byte[] firma = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<3A) ENTRA firma
+            boolean check = verificadsa.verify (firma);
 
             //Compruebo la veracidad de la firma
             if (check)
-                System.out.println("Las instrucciones son autenticas y podemos empezar a jugar...");
-            else System.out.println("No sigas!!! el mensaje que has recibido ha sido alterado. Comunicate con nosotros al telefono...");
+                System.out.println ("\nLas instrucciones son autenticas y podemos empezar a jugar...");
+            else
+                System.out.println ("\nNo sigas!!! el mensaje que has recibido ha sido alterado. Comunicate con nosotros al telefono...");
 
 
             ///EMPIEZA EL JUEGO
 
+            System.out.print ("\n*******************************3 EN LINEA*******************************\n");
             Scanner sc = new Scanner (System.in);
             System.out.print ("Reocgiendo mensajes\n");
 
@@ -198,7 +198,7 @@ public class Jugador {
 
                 mensajeEnviadoCifrado = desCipher.doFinal (mensajeEnviado.getBytes ());
 
-                oos.writeObject (mensajeEnviadoCifrado);
+                oos.writeObject (mensajeEnviadoCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2B) sale info partida
 
             } while (!mensajeEnviado.equals ("end"));
 
@@ -219,44 +219,7 @@ public class Jugador {
     }
 
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getApellido() {
-        return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
-
-    public int getEdad() {
-        return edad;
-    }
-
-    public void setEdad(int edad) {
-        this.edad = edad;
-    }
-
-    public String getNick() {
-        return nick;
-    }
-
-    public void setNick(String nick) {
-        this.nick = nick;
-    }
 
 
-    public char[] getPassword() {
-        return password;
-    }
 
-    public void setPassword(char[] password) {
-        this.password = password;
-    }
 }

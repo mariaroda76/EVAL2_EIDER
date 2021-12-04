@@ -1,7 +1,11 @@
+
+import org.apache.commons.lang3.SerializationUtils;
+
 import javax.crypto.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.security.*;
 import java.util.logging.Level;
@@ -32,6 +36,8 @@ public class HiloServer extends Thread {
 
     public void run() {
         try {
+
+            System.out.println ("\nSe ha recibido una nueva conexión...");
             byte[] mensajeRecibido = null;
             String mensajeRecibidoDescifrado = "";
 
@@ -46,25 +52,46 @@ public class HiloServer extends Thread {
             PublicKey publica = par.getPublic ();
 
 
-            System.out.println ("La clave para el cliente es : " + publica);
+            System.out.println ("\nLa clave para comunicacion segura con el nuevo jugador es : " + publica);
 
             //COMUNICACION DE CLAVES , FIRMAS E INSTRUCCIONES
 
             try {
-                //mandamos la clave publica
+                //OUT
+                //enviamos la clave publica
+                System.out.println ("1a) enviando clave publica para comunicacion segura...");
                 oos.writeObject (publica);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1A) sale clave
 
-                // Creamos la firma digital
-                System.out.println ("Envio de instrucciones del Juego firmadas");
+
+
+                //IN
+                //RECIBE INFO DEL JUGADOR
+
+                SealedObject jugadorCipher =  (SealedObject) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1B) entra info jugador
+                //preparamos el Cipher para descifrar
+
+                Cipher descipher = Cipher.getInstance ("RSA");
+                descipher.init (Cipher.DECRYPT_MODE, privada);
+
+                JugadorModel jugadorDescipher  = (JugadorModel) jugadorCipher .getObject(descipher);
+                System.out.println("Nuevo jugador conectado : " + jugadorDescipher.getNick ());
+
+
+                //OUT
+                // Creamos instrucciones y enviamos
+                System.out.println ("2a) enviando instrucciones del Juego firmadas...");
                 String mensaje = "Estas son las instrucciones del juego planas";
 
                 oos.writeObject (mensaje);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2A) sale instrucciones planas
 
+                //OUT
+                // Creamos la firma digital
+                System.out.println ("3a) enviando firma...");
                 Signature dsa = Signature.getInstance ("SHA1WITHRSA");
                 dsa.initSign (privada);
 
                 dsa.update (mensaje.getBytes ());
-                byte[] firma = dsa.sign (); //MENSAJE FIRMADO
+                byte[] firma = dsa.sign ();
                 oos.writeObject (firma);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3A) sale instruccion firmada
 
 
@@ -76,15 +103,24 @@ public class HiloServer extends Thread {
                 Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
             } catch (SignatureException ex) {
                 Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace ();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace ();
+            } catch (BadPaddingException e) {
+                e.printStackTrace ();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace ();
             }
 
-            //COMUNICACION DE JUGO
+            //COMUNICACION DE JUEGO
 
             try {
                 do {
                     try {
+
                         //recibimos texto encriptado del cliente
-                        mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1B) RECIBIMOS COMUNICACION DE CLIENTE
+                        mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2B) RECIBIMOS info partida
 
                     } catch (ClassNotFoundException ex) {
                         Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
