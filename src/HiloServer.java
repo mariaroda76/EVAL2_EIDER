@@ -66,7 +66,6 @@ public class HiloServer extends Thread {
 
                 //IN
                 //RECIBE INFO DEL JUGADOR
-
                 SealedObject jugadorCipher =  (SealedObject) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1B) entra info jugador
                 //preparamos el Cipher para descifrar
 
