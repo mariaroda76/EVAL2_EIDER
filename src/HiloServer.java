@@ -3,13 +3,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class HiloServer extends Thread  {
+public class HiloServer extends Thread {
 
 
     //La aplicación representa un juego en el que desde el servidor se lanzan
@@ -25,94 +24,105 @@ public class HiloServer extends Thread  {
     //La dinámica del juego es libre, el programador es quien decide como se juega.
 
 
-
-    Socket c = new Socket();
+    Socket c = new Socket ();
 
     public HiloServer(Socket c) {
         this.c = c;
     }
 
     public void run() {
-
-
-
         try {
             byte[] mensajeRecibido = null;
-
-            KeyGenerator keygen = null;
-            Cipher desCipher = null;
             String mensajeRecibidoDescifrado = "";
 
-            System.out.println("Obteniendo generador de claves con cifrado DES");
-            try {
-                keygen = KeyGenerator.getInstance("DES");
-            } catch (NoSuchAlgorithmException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            System.out.println("Generando clave");
-            SecretKey key = keygen.generateKey();
-            // //////////////////////////////////////////////////////////////
-            // CONVERTIR CLAVE A STRING Y VISUALIZAR/////////////////////////
-            // obteniendo la version codificada en base 64 de la clave
 
-            System.out.println("La clave es: " + key);
+            ObjectOutputStream oos = new ObjectOutputStream (c.getOutputStream ());
+            ObjectInputStream ois = new ObjectInputStream (c.getInputStream ());
 
-            // //////////////////////////////////////////////////////////////
-            // CREAR CIFRADOR Y PONER EN MODO DESCIFRADO//////////////////
-            System.out.println("Obteniendo objeto Cipher con cifraddo DES");
+
+            KeyPairGenerator keygen = KeyPairGenerator.getInstance ("RSA");
+            KeyPair par = keygen.generateKeyPair ();
+            PrivateKey privada = par.getPrivate ();
+            PublicKey publica = par.getPublic ();
+
+
+            System.out.println ("La clave para el cliente es : " + publica);
+
+            //COMUNICACION DE CLAVES , FIRMAS E INSTRUCCIONES
+
             try {
-                desCipher = Cipher.getInstance("DES");
-            } catch (NoSuchAlgorithmException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            System.out.println("Configurando Cipher para desencriptar");
-            try {
-                desCipher.init(Cipher.DECRYPT_MODE, key);
-            } catch (InvalidKeyException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                //mandamos la clave publica
+                oos.writeObject (publica);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1A) sale clave
+
+                // Creamos la firma digital
+                System.out.println ("Envio de instrucciones del Juego firmadas");
+                String mensaje = "Estas son las instrucciones del juego planas";
+
+                oos.writeObject (mensaje);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2A) sale instrucciones planas
+
+                Signature dsa = Signature.getInstance ("SHA1WITHRSA");
+                dsa.initSign (privada);
+
+                dsa.update (mensaje.getBytes ());
+                byte[] firma = dsa.sign (); //MENSAJE FIRMADO
+                oos.writeObject (firma);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3A) sale instruccion firmada
+
+
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (InvalidKeyException ex) {
+                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (SignatureException ex) {
+                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
             }
 
-            // Enviamos la clave
-            ObjectOutputStream oos = new ObjectOutputStream(c.getOutputStream());
-            ObjectInputStream ois = new ObjectInputStream(c.getInputStream());
-            oos.writeObject(key);
+            //COMUNICACION DE JUGO
+
             try {
                 do {
                     try {
-                        //
-                        mensajeRecibido = (byte[]) ois.readObject();
+                        //recibimos texto encriptado del cliente
+                        mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1B) RECIBIMOS COMUNICACION DE CLIENTE
 
                     } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(ServerJuego.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
                     }
-                    mensajeRecibidoDescifrado = new String(desCipher.doFinal(mensajeRecibido));
-                    System.out.println("El texto enviado por el cliente y descifrado por el servidor es : " + new String(mensajeRecibidoDescifrado));
 
-                } while (!mensajeRecibidoDescifrado.equals("end"));
+                    //preparamos el Cipher para descifrar
+                    Cipher descipher = Cipher.getInstance ("RSA");
+                    descipher.init (Cipher.DECRYPT_MODE, privada);
+
+                    mensajeRecibidoDescifrado = new String (descipher.doFinal (mensajeRecibido));
+                    System.out.println ("Mensaje descifrado con clave privada: " + mensajeRecibidoDescifrado);
+
+                    //AQUI DEBERIA ENVIARLE RESPUESTA DEL JUEGO SEA LO QUE SEA
+
+
+                } while (!mensajeRecibidoDescifrado.equals ("end"));
 
             } catch (IllegalBlockSizeException ex) {
-                Logger.getLogger(ServerJuego.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
             } catch (BadPaddingException ex) {
-                Logger.getLogger(ServerJuego.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace ();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace ();
             }
 
             // cierra los paquetes de datos, el socket y el servidor
-            ois.close();
-            oos.close();
+            ois.close ();
+            oos.close ();
 
-            c.close();
+            c.close ();
 
-            System.out.println("Fin de la conexion");
+            System.out.println ("Fin de la conexion");
 
 
-        } catch (IOException ex) {
-            Logger.getLogger(ServerJuego.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | NoSuchAlgorithmException ex) {
+            Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
         }
 
 

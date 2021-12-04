@@ -7,8 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -116,9 +115,9 @@ public class Jugador {
                         jugador.setPassword (pass);
                         ////////////////////////////////////
 
-                        StringBuilder texto = new StringBuilder();
+                        StringBuilder texto = new StringBuilder ();
                         for (int i = 0; i < pass.length; i++) {
-                            texto.append("*");
+                            texto.append ("*");
                         }
                         System.out.println ("has ingresado: " + texto);
                         fallido = false;
@@ -128,11 +127,12 @@ public class Jugador {
                 }
             }
 
-
-
             // Crea el cliente
             Jugador c = new Jugador ();
-            c.initClient ();
+
+            //una vez creado, conecto con el servidor y le envio el cliente
+            c.initClient (c);
+
         } catch (InvalidKeyException ex) {
             Logger.getLogger (Jugador.class.getName ()).log (Level.SEVERE, null, ex);
         } catch (IllegalBlockSizeException ex) {
@@ -143,7 +143,7 @@ public class Jugador {
     }
 
 
-    public void initClient() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
+    public void initClient(Jugador c) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
         try {
 
             // /////////////////////////////////////////////////////////////////////////
@@ -152,17 +152,41 @@ public class Jugador {
             //COMIENZO CON los flujos
             //PROBAR SI PUEDO COMPROBAR SI NICK YA UTILIZADO..SI ME DA EL TIEMPO
 
+            boolean partida = true;
+
 
             //creamos los flujos
-            ObjectInputStream ois = new ObjectInputStream (cliente.getInputStream ());
-            ObjectOutputStream oos = new ObjectOutputStream (cliente.getOutputStream ());
-            //recogemos del flujo la clave simetrica
-            SecretKey key = (SecretKey) ois.readObject ();
-            System.out.println ("le clave es : " + key);
-            System.out.println ("Configurando Cipher para encriptar");
-            desCipher = Cipher.getInstance ("DES");
+            //voy a recibir del server la clave para enviarle los mensajes encriptados
 
-            desCipher.init (Cipher.ENCRYPT_MODE, key);
+            ObjectOutputStream oos = new ObjectOutputStream (cliente.getOutputStream ());
+            ObjectInputStream ois = new ObjectInputStream (cliente.getInputStream ());
+
+            System.out.println("Leemos la clave");
+            //obtenemos la clave publica
+            PublicKey clave=(PublicKey) ois.readObject();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1A) ENTRA clave
+            System.out.println("La clave recibida es: "+clave);
+
+            //Leo mensaje intrucciones plano
+            String mensaje= ois.readObject().toString();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2A) ENTRA instruccion plana
+            System.out.println("mensaje: "+ mensaje);
+
+            //Verificamos la firma
+            System.out.println("Verifico firma");
+            Signature verificadsa = Signature.getInstance("SHA1WITHRSA");
+            verificadsa.initVerify(clave);
+
+            verificadsa.update(mensaje.getBytes());
+            byte[] firma= (byte[]) ois.readObject();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<3A) ENTRA firma
+            boolean check = verificadsa.verify(firma);
+
+            //Compruebo la veracidad de la firma
+            if (check)
+                System.out.println("Las instrucciones son autenticas y podemos empezar a jugar...");
+            else System.out.println("No sigas!!! el mensaje que has recibido ha sido alterado. Comunicate con nosotros al telefono...");
+
+
+            ///EMPIEZA EL JUEGO
+
             Scanner sc = new Scanner (System.in);
             System.out.print ("Reocgiendo mensajes\n");
 
@@ -188,6 +212,8 @@ public class Jugador {
             e.printStackTrace ();
         } catch (IOException e) {
             // TODO Auto-generated catch block
+            e.printStackTrace ();
+        } catch (SignatureException e) {
             e.printStackTrace ();
         }
     }
