@@ -73,8 +73,8 @@ public class JugadorModel implements Serializable {
     @Override
     public String toString() {
         return "SCORE: " +
-                "NICK=" + nick +
-                "FINAL SCORE= " + finalScore
+                "\nNICK=" + nick +
+                "\nFINAL SCORE= " + finalScore
                 ;
     }
 }

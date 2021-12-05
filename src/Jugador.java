@@ -220,6 +220,7 @@ public class Jugador {
 
                 } while (!preguntaRecibidoDescifrada.equals ("end"));//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1x) RECIBIMOS mensaje end significa fin del bucle de preguntas y respuestas
 
+                System.out.print ("\n*******************************FIN DEL JUEGO*******************************\n");
                 System.out.println (c.toString ());
 
             } catch (IllegalBlockSizeException ex) {
