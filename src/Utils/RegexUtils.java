@@ -25,9 +25,6 @@ public class RegexUtils {
     public static final String PASSWORD_REGEX = "^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$";
 
 
-
-
-
     public static boolean matches(String input, String regex) {
 
         if (StringUtils.isEmpty(input)) {

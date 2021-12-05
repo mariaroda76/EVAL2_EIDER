@@ -1,4 +1,5 @@
 import Utils.RegexUtils;
+import Utils.StringUtils;
 
 import javax.crypto.*;
 import java.io.*;
@@ -18,7 +19,7 @@ public class Jugador {
     private Cipher desCipher;
     private String mensajeEnviado = "";
     private byte[] mensajeEnviadoCifrado;
-    private int scoreFinal=0;
+    private int scoreFinal = 0;
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, ClassNotFoundException {
@@ -77,9 +78,11 @@ public class Jugador {
                     System.out.println ("Ingresa tu NICK:");
                     String nick = input.nextLine ();
                     if (RegexUtils.matches (nick, RegexUtils.TEXT_FORMAT)) {
-                        jugadorM.setNick (nick);
-                        System.out.println ("has ingresado " + nick);
-                        fallido = false;
+
+                            jugadorM.setNick (nick);
+                            System.out.println ("has ingresado " + nick);
+                            fallido = false;
+
                     } else {
                         System.out.println ("EL NICK NO PUEDE ESTAR VACIO, Y PUEDE SER ALFANUMERICO");
                     }
@@ -89,7 +92,7 @@ public class Jugador {
                 while (fallido) {
                     System.out.println ("Ingresa tu password: (8 CARACTERES, UN NUMERO, UNA MAYUSCULA Y UN CARACTER ESPECIAL)");
                     String passTemp = input.nextLine ();
-                    if (!RegexUtils.matches (passTemp, RegexUtils.PASSWORD_REGEX)) {
+                    if ((!RegexUtils.matches (passTemp, RegexUtils.PASSWORD_REGEX)) && !StringUtils.isEmpty (StringUtils.trim(passTemp))) {
 
                         ////////////////////////////////////probar si lo puedo encriprar guardar y comprobar encriptado por ahora va como char []
                         char[] pass = passTemp.toCharArray ();
@@ -108,7 +111,7 @@ public class Jugador {
                 }
             }
 
-           jugadorM.setFinalScore (0);
+            jugadorM.setFinalScore (0);
             //una vez creado, conecto con el servidor y le envio el cliente
             jugador.initClient (jugadorM);
 
@@ -206,7 +209,7 @@ public class Jugador {
 
                     //AQUI DEBERIA ENVIARLE RESPUESTA DEL JUEGO SEA LO QUE SEA
 
-                    if(preguntaRecibidoDescifrada.startsWith ("¿") || preguntaRecibidoDescifrada.startsWith ("¡")){
+                    if (preguntaRecibidoDescifrada.startsWith ("¿") || preguntaRecibidoDescifrada.startsWith ("¡")) {
                         Scanner sc = new Scanner (System.in);
 
                         System.out.print ("Escribir Respuesta o finaliza con end\n");
@@ -214,8 +217,8 @@ public class Jugador {
                         // CIFRAR MENSAJE
                         mensajeEnviadoCifrado = cipher.doFinal (mensajeEnviado.getBytes ());
                         oos.writeObject (mensajeEnviadoCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2c) sale respuesta
-                    }else if(preguntaRecibidoDescifrada.startsWith ("Correcto!") ){
-                        c.setFinalScore (c.getFinalScore ()+1);
+                    } else if (preguntaRecibidoDescifrada.startsWith ("Correcto!")) {
+                        c.setFinalScore (c.getFinalScore () + 1);
                     }
 
                 } while (!preguntaRecibidoDescifrada.equals ("end"));//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1x) RECIBIMOS mensaje end significa fin del bucle de preguntas y respuestas
