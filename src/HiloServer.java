@@ -111,6 +111,10 @@ public class HiloServer extends Thread {
 
             //COMUNICACION DE JUEGO
 
+            Game juego = new Game ();
+            juego.iniciarJuego (oos,ois,privada);
+
+/*
             try {
                 do {
                     try {
@@ -143,6 +147,7 @@ public class HiloServer extends Thread {
             } catch (InvalidKeyException e) {
                 e.printStackTrace ();
             }
+*/
 
             // cierra los paquetes de datos, el socket y el servidor
             ois.close ();
@@ -155,6 +160,14 @@ public class HiloServer extends Thread {
 
         } catch (IOException | NoSuchAlgorithmException ex) {
             Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace ();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace ();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace ();
+        } catch (BadPaddingException e) {
+            e.printStackTrace ();
         }
 
 

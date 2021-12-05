@@ -20,7 +20,6 @@ public class Jugador {
     private byte[] mensajeEnviadoCifrado;
 
 
-
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, ClassNotFoundException {
         try {
 
@@ -29,7 +28,7 @@ public class Jugador {
             boolean fallido = true;
             Scanner input = new Scanner (System.in);
             JugadorModel jugadorM = new JugadorModel ();
-            Jugador jugador = new Jugador();
+            Jugador jugador = new Jugador ();
 
             while (fallido) {
                 System.out.println ("Buenas!! ingresa tus datos:");
@@ -132,7 +131,6 @@ public class Jugador {
 
             boolean partida = true;
 
-
             //creamos los flujos
             //voy a recibir del server la clave para enviarle los mensajes encriptados
 
@@ -148,18 +146,16 @@ public class Jugador {
             System.out.println (c.getNick () + ": La clave recibida es: " + clave);
 
 
-
             //OUT
             //SALIDA INFO JUGADOR AL SERVER
             System.out.println (c.getNick () + ": 1b) enviando info de jugador al server.....");
 
             Cipher cipher = Cipher.getInstance ("RSA");
-            cipher.init(Cipher.ENCRYPT_MODE, clave);
+            cipher.init (Cipher.ENCRYPT_MODE, clave);
             //directamente cifrarlo en un array de bytes
 
-            SealedObject jugadorCipher = new SealedObject(c, cipher);
-            oos.writeObject(jugadorCipher);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1B) sale info jugador
-
+            SealedObject jugadorCipher = new SealedObject (c, cipher);
+            oos.writeObject (jugadorCipher);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1B) sale info jugador
 
 
             //IN
@@ -172,6 +168,7 @@ public class Jugador {
             Signature verificadsa = Signature.getInstance ("SHA1WITHRSA");
             verificadsa.initVerify (clave);
 
+            //IN
             verificadsa.update (mensaje.getBytes ());
             byte[] firma = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<3A) ENTRA firma
             boolean check = verificadsa.verify (firma);
@@ -182,25 +179,54 @@ public class Jugador {
             else
                 System.out.println ("\nNo sigas!!! el mensaje que has recibido ha sido alterado. Comunicate con nosotros al telefono...");
 
+            byte[] preguntaRecibida = null;
+            String preguntaRecibidoDescifrada = "";
+            System.out.print ("\n*******************************BIENVENIDO A TRIVIAL*******************************\n");
 
             ///EMPIEZA EL JUEGO
+            try {
+                do {
+                    try {
 
-            System.out.print ("\n*******************************3 EN LINEA*******************************\n");
-            Scanner sc = new Scanner (System.in);
-            System.out.print ("Reocgiendo mensajes\n");
+                        //recibimos PREGUNTA ENCRIPTADA DEL SERVER JUEGO
+                        preguntaRecibida = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1c) RECIBIMOS pregunta de trivial
 
-            do {
-                System.out.print ("Escribir nuevo texto, finaliza con end\n");
-                mensajeEnviado = sc.nextLine ();
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
+                    }
 
-                // CIFRAR MENSAJE
+                    //preparamos el Cipher para descifrar
+                    Cipher descipher = Cipher.getInstance ("RSA");
+                    descipher.init (Cipher.DECRYPT_MODE, clave);
 
-                mensajeEnviadoCifrado = desCipher.doFinal (mensajeEnviado.getBytes ());
+                    preguntaRecibidoDescifrada = new String (descipher.doFinal (preguntaRecibida));
+                    System.out.println (preguntaRecibidoDescifrada);
 
-                oos.writeObject (mensajeEnviadoCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2B) sale info partida
+                    //AQUI DEBERIA ENVIARLE RESPUESTA DEL JUEGO SEA LO QUE SEA
 
-            } while (!mensajeEnviado.equals ("end"));
+                    if(preguntaRecibidoDescifrada.startsWith ("¿") || preguntaRecibidoDescifrada.startsWith ("¡")){
+                        Scanner sc = new Scanner (System.in);
 
+                        System.out.print ("Escribir Respuesta o finaliza con end\n");
+                        mensajeEnviado = sc.nextLine ();
+                        // CIFRAR MENSAJE
+                        mensajeEnviadoCifrado = cipher.doFinal (mensajeEnviado.getBytes ());
+                        oos.writeObject (mensajeEnviadoCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2c) sale respuesta
+
+                    }
+
+
+                } while (!preguntaRecibidoDescifrada.equals ("end"));//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1x) RECIBIMOS mensaje end significa fin del bucle de preguntas y respuestas
+
+            } catch (IllegalBlockSizeException ex) {
+                Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (BadPaddingException ex) {
+                Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace ();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace ();
+            }
 
             // cierra salida, entrada y el socket
             oos.close ();
@@ -216,9 +242,6 @@ public class Jugador {
             e.printStackTrace ();
         }
     }
-
-
-
 
 
 }

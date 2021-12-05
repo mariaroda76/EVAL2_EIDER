@@ -1,24 +1,34 @@
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.security.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Game {
 
-
+    int score = 0;
     Jugador jugadorActual;
 
 
     public static Map<Integer, String> preguntas;
 
-    static {
+    {
         preguntas = new HashMap<> ();
         preguntas.put (0, "¿Definición de las siglas PHP?");
         preguntas.put (1, "¿PHP es un lenguaje?");
         preguntas.put (2, "¿Qué es POO?");
-        preguntas.put (3, "¿Lenguaje de programación de propósito general, " +
-                "concurrente, orientado a objetos, que fue diseñado específicamente " +
-                "para tener tan pocas dependencias de implementación como fuera posible. " +
-                "Su intención es permitir que los desarrolladores de aplicaciones escriban " +
-                "el programa una vez y lo ejecuten en cualquier dispositivo? ");
+/*        preguntas.put (3, "¿Lenguaje de programación de propósito general, " +
+                "\nconcurrente, orientado a objetos, que fue diseñado específicamente " +
+                "\npara tener tan pocas dependencias de implementación como fuera posible. " +
+                "\nSu intención es permitir que los desarrolladores de aplicaciones escriban " +
+                "\nel programa una vez y lo ejecuten en cualquier dispositivo? ");*/
         preguntas.put (4, "¿Es un lenguaje de programación?");
         preguntas.put (5, "¿Qué es MongoDB?");
         preguntas.put (6, "¿Mascota oficial de Linux?");
@@ -35,7 +45,7 @@ public class Game {
 
     public static Map<Integer, List<String>> respuestasPosibles;
 
-    static {
+    {
         respuestasPosibles = new HashMap<> ();
         respuestasPosibles.put (0, Arrays.asList (
                 "Hypertext Pre-Processor",
@@ -50,11 +60,11 @@ public class Game {
         respuestasPosibles.put (2, Arrays.asList (
                 "Programación orientada a objetos",
                 "Programación por procesos"));
-        respuestasPosibles.put (3, Arrays.asList (
+/*        respuestasPosibles.put (3, Arrays.asList (
                 "JAVA",
                 "PHP",
                 "PYTHON",
-                "C#"));
+                "C#"));*/
         respuestasPosibles.put (4, Arrays.asList (
                 "HTML5",
                 "AJAX",
@@ -79,7 +89,7 @@ public class Game {
                 "Estructural, Máquina",
                 "De bajo nivel y de alto nivel"));
         respuestasPosibles.put (9, Arrays.asList (
-                "Es el que entiende la computadora, es su lenguaje natural. En él sólo se pueden utilizar dos símbolos, el cero (0) y el uno (1).",
+                "Es el que entiende la computadora, es su lenguaje natural.En él sólo se pueden utilizar dos símbolos, el cero (0) y el uno (1).",
                 "Es el que entiende la computadora y es legible para el ser humano, es su lenguaje natural."));
         respuestasPosibles.put (10, Arrays.asList (
                 "String, Boleano, Numeros.",
@@ -107,7 +117,8 @@ public class Game {
 
     public static Map<Integer, Integer> respuestasCorrectas;
 
-    static {
+    {
+
         respuestasCorrectas = new HashMap<> ();
         respuestasCorrectas.put (0, 0);
         respuestasCorrectas.put (1, 0);
@@ -127,34 +138,177 @@ public class Game {
 
     }
 
-    public static void iniciarJuego() throws IOException {
+    public void iniciarJuego(ObjectOutputStream oos, ObjectInputStream ois, PrivateKey privada) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
-        ///Scanner input= new Scanner(socket.getInputStream());
+        Cipher cipher = Cipher.getInstance ("RSA");
+        cipher.init (Cipher.ENCRYPT_MODE, privada);
+        Cipher descipher = Cipher.getInstance ("RSA");
+        descipher.init (Cipher.DECRYPT_MODE, privada);
 
-        for (Map.Entry<Integer, String> preguntasM : preguntas.entrySet()) {
-            System.out.println(preguntasM.getValue());
-            System.out.println ("\tSelecciona respuesta Correcta: ");
-            for (Map.Entry<Integer, List<String>> RespPosM : respuestasPosibles.entrySet()) {
+        //ObjectOutputStream oos = new ObjectOutputStream (socket.getOutputStream ());
+        // ObjectInputStream ois = new ObjectInputStream (socket.getInputStream ());
 
-                if(preguntasM.getKey() == RespPosM.getKey() ){
-                    List<String> pregList = RespPosM.getValue ();
-                    for (int i = 0; i <pregList.size () ; i++) {
-                        System.out.println ("\t\t"+ i +"-"+ pregList.get (i));
 
+        for (Map.Entry<Integer, String> pregunta : preguntas.entrySet ()) {
+
+            StringBuilder mensajeNOCif = new StringBuilder ();
+            //PREGUNTA
+            mensajeNOCif.append (pregunta.getValue ());
+
+            //RESPUESTAS POSIBLES
+            mensajeNOCif.append ("\tSelecciona respuesta Correcta: ");
+            for (Map.Entry<Integer, List<String>> posibleResp : respuestasPosibles.entrySet ()) { //para cada pregunta
+                if (pregunta.getKey () == posibleResp.getKey ()) {
+                    List<String> pregList = posibleResp.getValue ();
+                    for (int i = 0; i < pregList.size (); i++) {
+                        mensajeNOCif.append ("\t\t" + i + "-" + pregList.get (i));
                     }
+
+                    byte[] mensajeCifrado = cipher.doFinal (mensajeNOCif.toString ().getBytes ());
+                    oos.writeObject (mensajeCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1c) sale pregunta server
+
+
+                    boolean fallido = true;
+                    while (fallido) {
+
+                        byte[] mensajeRecibido = null;
+                        String mensajeRecibidoDescifrado = "";
+
+                        try {
+                            mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2c) RECIBIMOS respuesta
+
+                            mensajeRecibidoDescifrado = new String (descipher.doFinal (mensajeRecibido));
+                            System.out.println ("Mensaje descifrado con clave privada: " + mensajeRecibidoDescifrado);
+
+
+                            if (!mensajeRecibidoDescifrado.equals ("end")) {
+                                StringBuilder mensajeNOCif2 = new StringBuilder ();
+
+                                boolean esInt=true;
+                                try {
+                                    Integer.parseInt (mensajeRecibidoDescifrado);
+                                    esInt=true;
+                                } catch (final NumberFormatException e) {
+                                    esInt=false;
+                                }
+
+                                if(esInt){
+                                int x = Integer.parseInt (mensajeRecibidoDescifrado);
+                                if (x >= 0 && x <= pregList.size () - 1) {
+                                    //respuesta puede ser comparada con respuestasvalidas
+                                    if (x == respuestasCorrectas.get (pregunta.getKey ())) {
+
+                                        mensajeNOCif2.append ("Correcto!");
+                                        score = score + 1;
+                                        mensajeNOCif2.append ("score actual: " + score);
+
+                                    } else {
+                                        mensajeNOCif2.append ("buuuuuuuuuu.. casi... pero no!");
+                                        mensajeNOCif2.append ("score actual: " + score);
+
+                                    }
+                                    fallido = false;
+                                } else {
+
+                                    mensajeNOCif2.append ("¡RESPUESTAS VALIDAS DE 0 a " + (pregList.size () - 1) + "!. VUELVE A INTENTARLO: ");
+                                    fallido = true;
+                                }
+                                }else{
+                                    mensajeNOCif2.append ("¡DATO INTRODUCIDO NO VALIDO! VUELVE A INTENTARLO:");
+                                    fallido = true;
+                                }
+
+                                byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
+                                oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
+
+                            } else {
+                                fallido = false;
+                            }
+
+
+                        } catch (IOException ex) {
+                            Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace ();
+                        }
+                    }
+
+
                 }
             }
 
 
-
         }
 
-        
+        String mensajeFin = "end";
+        byte[] mensajeFinCif = cipher.doFinal (mensajeFin.toString ().getBytes ());
+        oos.writeObject (mensajeFinCif);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1x) sale fin para acabar respuestas
+
 
     }
 
-    public static void main(String[] args) throws IOException {
-        iniciarJuego ();
+    public void iniciarJuegoTest() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+
+/*        Cipher cipher = Cipher.getInstance ("RSA");
+        cipher.init (Cipher.ENCRYPT_MODE, clave);
+        Cipher decipher = Cipher.getInstance ("RSA");
+        decipher.init (Cipher.DECRYPT_MODE, clave);
+
+        ObjectOutputStream oos = new ObjectOutputStream (socket.getOutputStream ());
+        ObjectInputStream ois = new ObjectInputStream (socket.getInputStream ());*/
+
+
+        for (Map.Entry<Integer, String> pregunta : preguntas.entrySet ()) {
+
+            System.out.println (pregunta.getValue ());
+            System.out.println ("\tSelecciona respuesta Correcta: ");
+            for (Map.Entry<Integer, List<String>> posibleResp : respuestasPosibles.entrySet ()) {
+
+                if (pregunta.getKey () == posibleResp.getKey ()) {
+                    List<String> pregList = posibleResp.getValue ();
+                    for (int i = 0; i < pregList.size (); i++) {
+                        System.out.println ("\t\t" + i + "-" + pregList.get (i));
+                    }
+
+                    boolean fallido = true;
+                    while (fallido) {
+                        System.out.println ("Respuesta?: ");
+
+                        Scanner scan = new Scanner (System.in);
+                        if (scan.hasNextInt ()) {
+                            int x = scan.nextInt ();
+                            if (x >= 0 && x <= pregList.size () - 1) {
+                                //respuesta puede ser comparada con respuestasvalidas
+                                if (x == respuestasCorrectas.get (pregunta.getKey ())) {
+                                    System.out.println ("Correcto!");
+                                    score = score + 1;
+                                    System.out.println ("score actual: " + score);
+                                } else {
+                                    System.out.println ("buuuuuuuuuu.. casi... pero no!");
+                                    System.out.println ("score actual: " + score);
+                                }
+
+                                fallido = false;
+                            } else {
+                                System.out.println ("RESPUESTAS VALIDAS DE 0 a " + (pregList.size () - 1));
+                            }
+                        } else {
+                            System.out.println ("DATO INTRODUCIDO NO VALIDO");
+                            fallido = true;
+                        }
+                    }
+
+                }
+            }
+
+
+        }
+
+
+    }
+
+    public static void main(String[] args) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+        //iniciarJuegoTest ();
     }
 
 }
