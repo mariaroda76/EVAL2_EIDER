@@ -18,6 +18,7 @@ public class Jugador {
     private Cipher desCipher;
     private String mensajeEnviado = "";
     private byte[] mensajeEnviadoCifrado;
+    private int scoreFinal=0;
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, ClassNotFoundException {
@@ -107,6 +108,7 @@ public class Jugador {
                 }
             }
 
+           jugadorM.setFinalScore (0);
             //una vez creado, conecto con el servidor y le envio el cliente
             jugador.initClient (jugadorM);
 
@@ -212,11 +214,13 @@ public class Jugador {
                         // CIFRAR MENSAJE
                         mensajeEnviadoCifrado = cipher.doFinal (mensajeEnviado.getBytes ());
                         oos.writeObject (mensajeEnviadoCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2c) sale respuesta
-
+                    }else if(preguntaRecibidoDescifrada.startsWith ("Correcto!") ){
+                        c.setFinalScore (c.getFinalScore ()+1);
                     }
 
-
                 } while (!preguntaRecibidoDescifrada.equals ("end"));//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1x) RECIBIMOS mensaje end significa fin del bucle de preguntas y respuestas
+
+                System.out.println (c.toString ());
 
             } catch (IllegalBlockSizeException ex) {
                 Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);

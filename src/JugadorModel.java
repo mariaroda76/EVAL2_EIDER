@@ -1,22 +1,33 @@
 import java.io.Serializable;
+import java.util.Arrays;
 
-public class JugadorModel  implements Serializable {
+public class JugadorModel implements Serializable {
 
     private String nombre;
     private String apellido;
     private int edad;
     private String nick;
     private char[] password;
+    private int finalScore;
 
-    public JugadorModel(String nombre, String apellido, int edad, String nick, char[] password) {
+    public JugadorModel(String nombre, String apellido, int edad, String nick, char[] password, int finalScore) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.edad = edad;
         this.nick = nick;
         this.password = password;
+        this.finalScore = finalScore;
     }
 
     public JugadorModel() {
+    }
+
+    public int getFinalScore() {
+        return finalScore;
+    }
+
+    public void setFinalScore(int finalScore) {
+        this.finalScore = finalScore;
     }
 
     public String getNombre() {
@@ -57,5 +68,13 @@ public class JugadorModel  implements Serializable {
 
     public void setPassword(char[] password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "SCORE: " +
+                "NICK=" + nick +
+                "FINAL SCORE= " + finalScore
+                ;
     }
 }

@@ -24,11 +24,7 @@ public class Game {
         preguntas.put (0, "¿Definición de las siglas PHP?");
         preguntas.put (1, "¿PHP es un lenguaje?");
         preguntas.put (2, "¿Qué es POO?");
-/*        preguntas.put (3, "¿Lenguaje de programación de propósito general, " +
-                "\nconcurrente, orientado a objetos, que fue diseñado específicamente " +
-                "\npara tener tan pocas dependencias de implementación como fuera posible. " +
-                "\nSu intención es permitir que los desarrolladores de aplicaciones escriban " +
-                "\nel programa una vez y lo ejecuten en cualquier dispositivo? ");*/
+        preguntas.put (3, "¿Qué es MVC?");
         preguntas.put (4, "¿Es un lenguaje de programación?");
         preguntas.put (5, "¿Qué es MongoDB?");
         preguntas.put (6, "¿Mascota oficial de Linux?");
@@ -36,10 +32,6 @@ public class Game {
         preguntas.put (8, "¿Cuáles son los tipos de lenguaje de programación?");
         preguntas.put (9, "¿Que es un Lenguaje Maquina?");
         preguntas.put (10, "¿Algunos tipos de datos que se manejan en Programación?");
-        preguntas.put (11, "¿Qué es el compilador Java?");
-        preguntas.put (12, "¿Que es una Clase en Programación?");
-        preguntas.put (13, "¿Que es un atributo en Programación ?");
-        preguntas.put (14, "¿Qué es MVC?");
 
     }
 
@@ -60,11 +52,10 @@ public class Game {
         respuestasPosibles.put (2, Arrays.asList (
                 "Programación orientada a objetos",
                 "Programación por procesos"));
-/*        respuestasPosibles.put (3, Arrays.asList (
-                "JAVA",
-                "PHP",
-                "PYTHON",
-                "C#"));*/
+        respuestasPosibles.put (3, Arrays.asList (
+                "Modelo Vista Controlador",
+                "Moda Visten Cuantos",
+                "Macro Vista Controlador"));
         respuestasPosibles.put (4, Arrays.asList (
                 "HTML5",
                 "AJAX",
@@ -84,35 +75,19 @@ public class Game {
                 "Photoshop",
                 "Winrar"));
         respuestasPosibles.put (8, Arrays.asList (
-                "MS-DOS, C, C++, Java, Visual Basic, SQL, SQL Server",
-                "El lenguaje máquina, Lenguajes ensambladores y de lenguajes de alto nivel",
+                "MS-DOS, C, C++, Java",
+                " Visual Basic, SQL, SQL Server",
                 "Estructural, Máquina",
                 "De bajo nivel y de alto nivel"));
         respuestasPosibles.put (9, Arrays.asList (
-                "Es el que entiende la computadora, es su lenguaje natural.En él sólo se pueden utilizar dos símbolos, el cero (0) y el uno (1).",
-                "Es el que entiende la computadora y es legible para el ser humano, es su lenguaje natural."));
+                "No legible sólo se pueden utilizar dos símbolos, el cero y el uno.",
+                "Legible para el ser humano, es su lenguaje natural."));
         respuestasPosibles.put (10, Arrays.asList (
                 "String, Boleano, Numeros.",
                 "Simbólicos, de estructura, de cadena.",
                 "Tipo Java, C++, Smalltalk.",
                 " Visual Basic, Delphi, Perl."));
-        respuestasPosibles.put (11, Arrays.asList (
-                "Es un programa contable que traduce un programa escrito en un lenguaje de programación a otro lenguaje de programación.",
-                "Es un programa que transforma código fuente escrito en java a un código neutral a la plataforma conocido como java.",
-                "Es un entorno de desarrollo integrado libre hecho principalmente para el lenguaje de programación Java.",
-                "Es un atributo de una parte de los datos que indica al ordenador (y/o al programador) algo sobre la clase de datos sobre los que se va a procesar."));
-        respuestasPosibles.put (12, Arrays.asList (
-                "Es una colección o conjunto de objetos que comparten características comunes entre si.",
-                "Es un atributo de una parte de los datos que indica al ordenador (y/o al programador) algo sobre la clase de datos sobre los que se va a procesar",
-                "Es un programa contable que traduce un programa escrito en un lenguaje de programación a otro lenguaje de programación."));
-        respuestasPosibles.put (13, Arrays.asList (
-                "Es un entorno de desarrollo integrado libre hecho principalmente para un lenguaje de programación.",
-                "Son las cosas individuales que diferencian una clase de objetos de otros y determinan la apariencia estado y otras cualidades de la clase.",
-                "Es un atributo de una parte de los datos que indica al ordenador (y/o al programador) algo sobre la clase de datos sobre los que se va a procesar."));
-        respuestasPosibles.put (14, Arrays.asList (
-                "Modelo Vista Controlador",
-                "Moda Visten Cuantos",
-                "Macro Vista Controlador"));
+
     }
 
     public static Map<Integer, Integer> respuestasCorrectas;
@@ -131,10 +106,7 @@ public class Game {
         respuestasCorrectas.put (8, 3);
         respuestasCorrectas.put (9, 0);
         respuestasCorrectas.put (10, 0);
-        respuestasCorrectas.put (11, 1);
-        respuestasCorrectas.put (12, 0);
-        respuestasCorrectas.put (13, 1);
-        respuestasCorrectas.put (14, 0);
+
 
     }
 
@@ -144,10 +116,6 @@ public class Game {
         cipher.init (Cipher.ENCRYPT_MODE, privada);
         Cipher descipher = Cipher.getInstance ("RSA");
         descipher.init (Cipher.DECRYPT_MODE, privada);
-
-        //ObjectOutputStream oos = new ObjectOutputStream (socket.getOutputStream ());
-        // ObjectInputStream ois = new ObjectInputStream (socket.getInputStream ());
-
 
         for (Map.Entry<Integer, String> pregunta : preguntas.entrySet ()) {
 
@@ -301,9 +269,7 @@ public class Game {
                 }
             }
 
-
         }
-
 
     }
 

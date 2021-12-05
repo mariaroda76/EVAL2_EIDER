@@ -114,40 +114,6 @@ public class HiloServer extends Thread {
             Game juego = new Game ();
             juego.iniciarJuego (oos,ois,privada);
 
-/*
-            try {
-                do {
-                    try {
-
-                        //recibimos texto encriptado del cliente
-                        mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2B) RECIBIMOS info partida
-
-                    } catch (ClassNotFoundException ex) {
-                        Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
-                    }
-
-                    //preparamos el Cipher para descifrar
-                    Cipher descipher = Cipher.getInstance ("RSA");
-                    descipher.init (Cipher.DECRYPT_MODE, privada);
-
-                    mensajeRecibidoDescifrado = new String (descipher.doFinal (mensajeRecibido));
-                    System.out.println ("Mensaje descifrado con clave privada: " + mensajeRecibidoDescifrado);
-
-                    //AQUI DEBERIA ENVIARLE RESPUESTA DEL JUEGO SEA LO QUE SEA
-
-
-                } while (!mensajeRecibidoDescifrado.equals ("end"));
-
-            } catch (IllegalBlockSizeException ex) {
-                Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
-            } catch (BadPaddingException ex) {
-                Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace ();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace ();
-            }
-*/
 
             // cierra los paquetes de datos, el socket y el servidor
             ois.close ();
