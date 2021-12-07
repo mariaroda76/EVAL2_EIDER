@@ -79,9 +79,9 @@ public class Jugador {
                     String nick = input.nextLine ();
                     if (RegexUtils.matches (nick, RegexUtils.TEXT_FORMAT)) {
 
-                            jugadorM.setNick (nick);
-                            System.out.println ("has ingresado " + nick);
-                            fallido = false;
+                        jugadorM.setNick (nick);
+                        System.out.println ("has ingresado " + nick);
+                        fallido = false;
 
                     } else {
                         System.out.println ("EL NICK NO PUEDE ESTAR VACIO, Y PUEDE SER ALFANUMERICO");
@@ -92,7 +92,7 @@ public class Jugador {
                 while (fallido) {
                     System.out.println ("Ingresa tu password: (8 CARACTERES, UN NUMERO, UNA MAYUSCULA Y UN CARACTER ESPECIAL)");
                     String passTemp = input.nextLine ();
-                    if ((!RegexUtils.matches (passTemp, RegexUtils.PASSWORD_REGEX)) && !StringUtils.isEmpty (StringUtils.trim(passTemp))) {
+                    if ((!RegexUtils.matches (passTemp, RegexUtils.PASSWORD_REGEX)) && !StringUtils.isEmpty (StringUtils.trim (passTemp))) {
 
                         ////////////////////////////////////probar si lo puedo encriprar guardar y comprobar encriptado por ahora va como char []
                         char[] pass = passTemp.toCharArray ();
@@ -212,16 +212,18 @@ public class Jugador {
                     if (preguntaRecibidoDescifrada.startsWith ("¿") || preguntaRecibidoDescifrada.startsWith ("¡")) {
                         Scanner sc = new Scanner (System.in);
 
-                        System.out.print ("Escribir Respuesta o finaliza con end\n");
+                        System.out.print ("Escribe tu respuesta o finaliza con 'end':\n");
                         mensajeEnviado = sc.nextLine ();
                         // CIFRAR MENSAJE
                         mensajeEnviadoCifrado = cipher.doFinal (mensajeEnviado.getBytes ());
                         oos.writeObject (mensajeEnviadoCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2c) sale respuesta
                     } else if (preguntaRecibidoDescifrada.startsWith ("Correcto!")) {
                         c.setFinalScore (c.getFinalScore () + 1);
+                    } else if (preguntaRecibidoDescifrada.startsWith (">>")) {
+                        c.setFinalScore (c.getFinalScore ());
                     }
 
-                } while (!preguntaRecibidoDescifrada.equals ("end"));//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1x) RECIBIMOS mensaje end significa fin del bucle de preguntas y respuestas
+                } while (!preguntaRecibidoDescifrada.equalsIgnoreCase ("end"));//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1x) RECIBIMOS mensaje end significa fin del bucle de preguntas y respuestas
 
                 System.out.print ("\n*******************************FIN DEL JUEGO*******************************\n");
                 System.out.println (c.toString ());

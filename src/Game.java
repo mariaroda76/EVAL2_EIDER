@@ -117,6 +117,9 @@ public class Game {
         Cipher descipher = Cipher.getInstance ("RSA");
         descipher.init (Cipher.DECRYPT_MODE, privada);
 
+
+
+
         for (Map.Entry<Integer, String> pregunta : preguntas.entrySet ()) {
 
             StringBuilder mensajeNOCif = new StringBuilder ();
@@ -124,12 +127,12 @@ public class Game {
             mensajeNOCif.append (pregunta.getValue ());
 
             //RESPUESTAS POSIBLES
-            mensajeNOCif.append ("\tSelecciona respuesta Correcta: ");
+            mensajeNOCif.append ("\n\tSelecciona respuesta Correcta: ");
             for (Map.Entry<Integer, List<String>> posibleResp : respuestasPosibles.entrySet ()) { //para cada pregunta
                 if (pregunta.getKey () == posibleResp.getKey ()) {
                     List<String> pregList = posibleResp.getValue ();
                     for (int i = 0; i < pregList.size (); i++) {
-                        mensajeNOCif.append ("\t\t" + i + "-" + pregList.get (i));
+                        mensajeNOCif.append ("\n\t\t" + i + "-" + pregList.get (i));
                     }
 
                     byte[] mensajeCifrado = cipher.doFinal (mensajeNOCif.toString ().getBytes ());
@@ -149,7 +152,7 @@ public class Game {
                             System.out.println ("Mensaje descifrado con clave privada: " + mensajeRecibidoDescifrado);
 
 
-                            if (!mensajeRecibidoDescifrado.equals ("end")) {
+                            if (!mensajeRecibidoDescifrado.equalsIgnoreCase ("end")) {
                                 StringBuilder mensajeNOCif2 = new StringBuilder ();
 
                                 boolean esInt=true;
@@ -191,6 +194,12 @@ public class Game {
 
                             } else {
                                 fallido = false;
+                                StringBuilder mensajeNOCif2 = new StringBuilder ();
+                                mensajeNOCif2.append (">> Oh!!! pues nada... lo dejamos.");
+                                mensajeNOCif2.append ("\nscore actual: " + score);
+                                byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
+                                oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
+                                //necesito salir del for aqui...
                             }
 
 
