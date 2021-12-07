@@ -117,100 +117,102 @@ public class Game {
         Cipher descipher = Cipher.getInstance ("RSA");
         descipher.init (Cipher.DECRYPT_MODE, privada);
 
-
-
-
+        boolean continuar = true;
         for (Map.Entry<Integer, String> pregunta : preguntas.entrySet ()) {
 
-            StringBuilder mensajeNOCif = new StringBuilder ();
-            //PREGUNTA
-            mensajeNOCif.append (pregunta.getValue ());
+            if (continuar) {
 
-            //RESPUESTAS POSIBLES
-            mensajeNOCif.append ("\n\tSelecciona respuesta Correcta: ");
-            for (Map.Entry<Integer, List<String>> posibleResp : respuestasPosibles.entrySet ()) { //para cada pregunta
-                if (pregunta.getKey () == posibleResp.getKey ()) {
-                    List<String> pregList = posibleResp.getValue ();
-                    for (int i = 0; i < pregList.size (); i++) {
-                        mensajeNOCif.append ("\n\t\t" + i + "-" + pregList.get (i));
-                    }
+                StringBuilder mensajeNOCif = new StringBuilder ();
+                //PREGUNTA
+                mensajeNOCif.append (pregunta.getValue ());
 
-                    byte[] mensajeCifrado = cipher.doFinal (mensajeNOCif.toString ().getBytes ());
-                    oos.writeObject (mensajeCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1c) sale pregunta server
-
-
-                    boolean fallido = true;
-                    while (fallido) {
-
-                        byte[] mensajeRecibido = null;
-                        String mensajeRecibidoDescifrado = "";
-
-                        try {
-                            mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2c) RECIBIMOS respuesta
-
-                            mensajeRecibidoDescifrado = new String (descipher.doFinal (mensajeRecibido));
-                            System.out.println ("Mensaje descifrado con clave privada: " + mensajeRecibidoDescifrado);
-
-
-                            if (!mensajeRecibidoDescifrado.equalsIgnoreCase ("end")) {
-                                StringBuilder mensajeNOCif2 = new StringBuilder ();
-
-                                boolean esInt=true;
-                                try {
-                                    Integer.parseInt (mensajeRecibidoDescifrado);
-                                    esInt=true;
-                                } catch (final NumberFormatException e) {
-                                    esInt=false;
-                                }
-
-                                if(esInt){
-                                int x = Integer.parseInt (mensajeRecibidoDescifrado);
-                                if (x >= 0 && x <= pregList.size () - 1) {
-                                    //respuesta puede ser comparada con respuestasvalidas
-                                    if (x == respuestasCorrectas.get (pregunta.getKey ())) {
-
-                                        mensajeNOCif2.append ("Correcto!");
-                                        score = score + 1;
-                                        mensajeNOCif2.append ("score actual: " + score);
-
-                                    } else {
-                                        mensajeNOCif2.append ("buuuuuuuuuu.. casi... pero no!");
-                                        mensajeNOCif2.append ("score actual: " + score);
-
-                                    }
-                                    fallido = false;
-                                } else {
-
-                                    mensajeNOCif2.append ("¡RESPUESTAS VALIDAS DE 0 a " + (pregList.size () - 1) + "!. VUELVE A INTENTARLO: ");
-                                    fallido = true;
-                                }
-                                }else{
-                                    mensajeNOCif2.append ("¡DATO INTRODUCIDO NO VALIDO! VUELVE A INTENTARLO:");
-                                    fallido = true;
-                                }
-
-                                byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
-                                oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
-
-                            } else {
-                                fallido = false;
-                                StringBuilder mensajeNOCif2 = new StringBuilder ();
-                                mensajeNOCif2.append (">> Oh!!! pues nada... lo dejamos.");
-                                mensajeNOCif2.append ("\nscore actual: " + score);
-                                byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
-                                oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
-                                //necesito salir del for aqui...
-                            }
-
-
-                        } catch (IOException ex) {
-                            Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace ();
+                //RESPUESTAS POSIBLES
+                mensajeNOCif.append ("\n\tSelecciona respuesta Correcta: ");
+                for (Map.Entry<Integer, List<String>> posibleResp : respuestasPosibles.entrySet ()) { //para cada pregunta
+                    if (pregunta.getKey () == posibleResp.getKey ()) {
+                        List<String> pregList = posibleResp.getValue ();
+                        for (int i = 0; i < pregList.size (); i++) {
+                            mensajeNOCif.append ("\n\t\t" + i + "-" + pregList.get (i));
                         }
+
+                        byte[] mensajeCifrado = cipher.doFinal (mensajeNOCif.toString ().getBytes ());
+                        oos.writeObject (mensajeCifrado);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1c) sale pregunta server
+
+
+                        boolean fallido = true;
+                        while (fallido) {
+
+                            byte[] mensajeRecibido = null;
+                            String mensajeRecibidoDescifrado = "";
+
+                            try {
+                                mensajeRecibido = (byte[]) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<2c) RECIBIMOS respuesta
+
+                                mensajeRecibidoDescifrado = new String (descipher.doFinal (mensajeRecibido));
+                                System.out.println ("Mensaje descifrado con clave privada: " + mensajeRecibidoDescifrado);
+
+
+                                if (!mensajeRecibidoDescifrado.equalsIgnoreCase ("end")) {
+                                    StringBuilder mensajeNOCif2 = new StringBuilder ();
+
+                                    boolean esInt = true;
+                                    try {
+                                        Integer.parseInt (mensajeRecibidoDescifrado);
+                                        esInt = true;
+                                    } catch (final NumberFormatException e) {
+                                        esInt = false;
+                                    }
+
+                                    if (esInt) {
+                                        int x = Integer.parseInt (mensajeRecibidoDescifrado);
+                                        if (x >= 0 && x <= pregList.size () - 1) {
+                                            //respuesta puede ser comparada con respuestasvalidas
+                                            if (x == respuestasCorrectas.get (pregunta.getKey ())) {
+
+                                                mensajeNOCif2.append ("Correcto!");
+                                                score = score + 1;
+                                                mensajeNOCif2.append ("score actual: " + score);
+
+                                            } else {
+                                                mensajeNOCif2.append ("buuuuuuuuuu.. casi... pero no!");
+                                                mensajeNOCif2.append ("score actual: " + score);
+
+                                            }
+                                            fallido = false;
+                                        } else {
+
+                                            mensajeNOCif2.append ("¡RESPUESTAS VALIDAS DE 0 a " + (pregList.size () - 1) + "!. VUELVE A INTENTARLO: ");
+                                            fallido = true;
+                                        }
+                                    } else {
+                                        mensajeNOCif2.append ("¡DATO INTRODUCIDO NO VALIDO! VUELVE A INTENTARLO:");
+                                        fallido = true;
+                                    }
+
+                                    byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
+                                    oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
+
+                                } else {
+                                    fallido = false;
+                                    continuar=false; // el cliente ha escrito 'end'
+                                    StringBuilder mensajeNOCif2 = new StringBuilder ();
+                                    mensajeNOCif2.append (">> Oh!!! pues nada... lo dejamos.");
+                                    mensajeNOCif2.append ("\nscore actual: " + score);
+                                    byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
+                                    oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
+                                    //necesito salir del for aqui...
+                                }
+
+
+                            } catch (IOException ex) {
+                                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace ();
+                            }
+                        }
+
+
                     }
-
-
                 }
             }
 
