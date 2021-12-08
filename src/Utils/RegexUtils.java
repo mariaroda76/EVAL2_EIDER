@@ -4,8 +4,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexUtils {
-    public static final String TEXT_FORMAT = "^(\\S)(.){1,75}(\\S)$";
+
+    public static final String TEXT_FORMAT = "^[a-zA-Z0-9_]*$";
+
+    //^ : start of string
+    //[ : beginning of character group
+    //a-z : any lowercase letter
+    //A-Z : any uppercase letter
+    //0-9 : any digit
+    //_ : underscore
+    //] : end of character group
+    //* : zero or more of the given characters
+    //$ : end of string
+
     public static final String NOMBRE_APELLIDO ="^[a-zA-Z ]*$";
+
+    public static final String NOMBRE_APELLIDO_ESPAÑOL ="^[a-zA-ZÀ-ÿ\\u00f1\\u00d1 ]*$";
+    // /^[a-zA-ZÀ-ÿ\u00f1\u00d1]+(\s*[a-zA-ZÀ-ÿ\u00f1\u00d1]*)*[a-zA-ZÀ-ÿ\u00f1\u00d1]+$/g;
+    // "^[aábcdeéfghijklmnñoópqrstuúüvwxyzAÁBCDEÉFGHIJKLMNÑOÓPQRSTUÚÜVWXYZ]*$"
+
     public static final String NON_NEGATIVE_INTEGER_FORMAT = "(\\d){1,9}";
     public static final String INTEGER_FORMAT = "(-)?" + NON_NEGATIVE_INTEGER_FORMAT;
     public static final String NON_NEGATIVE_FLOATING_POINT_FORMAT = "(\\d){1,10}\\.(\\d){1,10}";

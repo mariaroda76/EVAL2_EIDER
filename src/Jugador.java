@@ -38,12 +38,12 @@ public class Jugador {
                 while (fallido) {
                     System.out.println ("Ingresa tu nombre:");
                     String nombre = input.nextLine ();
-                    if (RegexUtils.matches (nombre, RegexUtils.NOMBRE_APELLIDO)) {
+                    if (RegexUtils.matches (nombre, RegexUtils.NOMBRE_APELLIDO_ESPAÑOL)) {
                         jugadorM.setNombre (nombre);
                         System.out.println ("has ingresado " + nombre);
                         fallido = false;
                     } else {
-                        System.out.println ("EL NOMBRE NO PUEDE ESTAR VACIO, Y DEBE SER ALFABETICO");
+                        System.out.println ("EL NOMBRE NO PUEDE ESTAR VACIO, Y DEBE/PUEDE SER ALFABETICO ESPAÑOL");
                     }
                 }
                 fallido = true;
@@ -51,12 +51,12 @@ public class Jugador {
                 while (fallido) {
                     System.out.println ("Ingresa tu apellido:");
                     String apellido = input.nextLine ();
-                    if (RegexUtils.matches (apellido, RegexUtils.NOMBRE_APELLIDO)) {
+                    if (RegexUtils.matches (apellido, RegexUtils.NOMBRE_APELLIDO_ESPAÑOL)) {
                         jugadorM.setApellido (apellido);
                         System.out.println ("has ingresado " + apellido);
                         fallido = false;
                     } else {
-                        System.out.println ("EL APELLIDO NO PUEDE ESTAR VACIO, Y DEBE SER ALFABETICO");
+                        System.out.println ("EL APELLIDO NO PUEDE ESTAR VACIO, Y DEBE/PUEDE SER ALFABETICO ESPAÑOL");
                     }
                 }
                 fallido = true;
@@ -84,13 +84,13 @@ public class Jugador {
                         fallido = false;
 
                     } else {
-                        System.out.println ("EL NICK NO PUEDE ESTAR VACIO, Y PUEDE SER ALFANUMERICO");
+                        System.out.println ("EL NICK NO PUEDE ESTAR VACIO, Y PUEDE SER ALFANUMERICO, NO CARACT ESPECIALES");
                     }
                 }
                 fallido = true;
                 //solicito pass
                 while (fallido) {
-                    System.out.println ("Ingresa tu password: (8 CARACTERES, UN NUMERO, UNA MAYUSCULA Y UN CARACTER ESPECIAL)");
+                    System.out.println ("Ingresa tu password: (8 CARACTERES, UN NUMERO, UNA MAYUSCULA, UNA MINUSCULA Y UN CARACTER ESPECIAL)");
                     String passTemp = input.nextLine ();
                     if ((!RegexUtils.matches (passTemp, RegexUtils.PASSWORD_REGEX)) && !StringUtils.isEmpty (StringUtils.trim (passTemp))) {
 
