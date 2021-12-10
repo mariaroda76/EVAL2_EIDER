@@ -1,0 +1,22 @@
+dic. 10, 2021 8:04:08 P. M. ServerJuego initServer
+INFO: Incializando servidor
+dic. 10, 2021 8:04:52 P. M. HiloServer run
+INFO: Se ha recibido una nueva conexión...
+dic. 10, 2021 8:04:55 P. M. HiloServer run
+INFO: Nuevo jugador conectado : wre
+dic. 10, 2021 8:11:30 P. M. ServerJuego initServer
+INFO: Incializando servidor
+dic. 10, 2021 8:12:01 P. M. HiloServer run
+INFO: Se ha recibido una nueva conexión...
+dic. 10, 2021 8:26:53 P. M. ServerJuego initServer
+INFO: Incializando servidor
+dic. 10, 2021 8:27:28 P. M. HiloServer run
+INFO: Nuevo jugador conectado : plik
+dic. 10, 2021 8:27:53 P. M. HiloServer run
+INFO: Nuevo jugador conectado : mako
+dic. 10, 2021 8:28:01 P. M. Game iniciarJuego
+INFO: plik abandona con: 2 puntos
+dic. 10, 2021 8:28:01 P. M. Game iniciarJuego
+INFO: plik termina partida con : 2 puntos
+dic. 10, 2021 8:28:10 P. M. Game iniciarJuego
+INFO: mako termina partida con : 4 puntos

@@ -1,3 +1,5 @@
+import Utils.LogMe;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -11,7 +13,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Game {
+public class Game  {
+
+    private static LogMe myLog = new LogMe ();
 
     int score = 0;
     Jugador jugadorActual;
@@ -110,7 +114,7 @@ public class Game {
 
     }
 
-    public void iniciarJuego(ObjectOutputStream oos, ObjectInputStream ois, PrivateKey privada) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public void iniciarJuego(ObjectOutputStream oos, ObjectInputStream ois, PrivateKey privada,JugadorModel j) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
         Cipher cipher = Cipher.getInstance ("RSA");
         cipher.init (Cipher.ENCRYPT_MODE, privada);
@@ -198,16 +202,20 @@ public class Game {
                                     StringBuilder mensajeNOCif2 = new StringBuilder ();
                                     mensajeNOCif2.append (">> Oh!!! pues nada... lo dejamos.");
                                     mensajeNOCif2.append ("\nscore actual: " + score);
+
+
                                     byte[] mensajeCifrado2 = cipher.doFinal (mensajeNOCif2.toString ().getBytes ());
                                     oos.writeObject (mensajeCifrado2);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3c) sale puntuacion y resultado de pregunta
-                                    //necesito salir del for aqui...
+
                                 }
 
 
                             } catch (IOException ex) {
-                                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                                myLog.getLoggerE ().log (Level.SEVERE, null, ex);
+                                //Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
                             } catch (ClassNotFoundException e) {
-                                e.printStackTrace ();
+                                myLog.getLoggerE ().log (Level.SEVERE, null, e);
+                                //e.printStackTrace ();
                             }
                         }
 
@@ -223,6 +231,8 @@ public class Game {
         byte[] mensajeFinCif = cipher.doFinal (mensajeFin.toString ().getBytes ());
         oos.writeObject (mensajeFinCif);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1x) sale fin para acabar respuestas
 
+        //LOG ACTIVIDAD
+        myLog.getLoggerA ().log (Level.INFO, j.getNick () + " termina partida con : " + score + " puntos");
 
     }
 

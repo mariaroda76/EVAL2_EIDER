@@ -1,4 +1,6 @@
 
+import Utils.LogMe;
+
 import javax.crypto.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,6 +13,8 @@ import java.util.logging.Logger;
 
 public class HiloServer extends Thread {
 
+    private static LogMe myLog = new LogMe ();
+    JugadorModel j;
 
     //La aplicación representa un juego en el que desde el servidor se lanzan
     //preguntas a los jugadores conectados y estos responden, si la respuesta es
@@ -25,6 +29,13 @@ public class HiloServer extends Thread {
     //La dinámica del juego es libre, el programador es quien decide como se juega.
 
 
+
+    // EL GETTER LO CREO POR SI TUVIESE LA NECESIDAD DE USAR EL CLORE HANDLER
+    public static LogMe getMyLog() {
+        return myLog;
+    }
+
+
     Socket c = new Socket ();
 
     public HiloServer(Socket c) {
@@ -32,6 +43,8 @@ public class HiloServer extends Thread {
     }
 
     public void run() {
+
+
         try {
 
             System.out.println ("\nSe ha recibido una nueva conexión...");
@@ -60,17 +73,21 @@ public class HiloServer extends Thread {
                 oos.writeObject (publica);//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1A) sale clave
 
 
-
                 //IN
                 //RECIBE INFO DEL JUGADOR
-                SealedObject jugadorCipher =  (SealedObject) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1B) entra info jugador
+                SealedObject jugadorCipher = (SealedObject) ois.readObject ();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<1B) entra info jugador
                 //preparamos el Cipher para descifrar
 
                 Cipher descipher = Cipher.getInstance ("RSA");
+                //Cipher descipher = Cipher.getInstance ("T"); //test error log con no such algorithm
                 descipher.init (Cipher.DECRYPT_MODE, privada);
 
-                JugadorModel jugadorDescipher  = (JugadorModel) jugadorCipher .getObject(descipher);
-                System.out.println("Nuevo jugador conectado : " + jugadorDescipher.getNick ());
+                JugadorModel jugadorDescipher = (JugadorModel) jugadorCipher.getObject (descipher);
+                j=jugadorDescipher;
+                System.out.println ("Nuevo jugador conectado : " + jugadorDescipher.getNick ());
+
+                //LOG ACTIVIDAD
+                myLog.getLoggerA ().log (Level.INFO, "Nuevo jugador conectado : " + jugadorDescipher.getNick ());
 
 
                 //OUT
@@ -92,27 +109,35 @@ public class HiloServer extends Thread {
 
 
             } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                myLog.getLoggerE ().log (Level.SEVERE, null, ex);
+                //Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
             } catch (IOException ex) {
-                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                myLog.getLoggerE ().log (Level.SEVERE, null, ex);
+                //Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
             } catch (InvalidKeyException ex) {
-                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                myLog.getLoggerE ().log (Level.SEVERE, null, ex);
+               // Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
             } catch (SignatureException ex) {
-                Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
+                myLog.getLoggerE ().log (Level.SEVERE, null, ex);
+                //Logger.getLogger (HiloServer.class.getName ()).log (Level.SEVERE, null, ex);
             } catch (NoSuchPaddingException e) {
-                e.printStackTrace ();
+                myLog.getLoggerE ().log (Level.SEVERE, null, e);
+                //e.printStackTrace ();
             } catch (IllegalBlockSizeException e) {
-                e.printStackTrace ();
+                myLog.getLoggerE ().log (Level.SEVERE, null, e);
+                //e.printStackTrace ();
             } catch (BadPaddingException e) {
-                e.printStackTrace ();
+                myLog.getLoggerE ().log (Level.SEVERE, null, e);
+                //e.printStackTrace ();
             } catch (ClassNotFoundException e) {
-                e.printStackTrace ();
+                myLog.getLoggerE ().log (Level.SEVERE, null, e);
+                //e.printStackTrace ();
             }
 
             //COMUNICACION DE JUEGO
 
             Game juego = new Game ();
-            juego.iniciarJuego (oos,ois,privada);
+            juego.iniciarJuego (oos, ois, privada,j);
 
 
             // cierra los paquetes de datos, el socket y el servidor
@@ -125,19 +150,25 @@ public class HiloServer extends Thread {
 
 
         } catch (IOException | NoSuchAlgorithmException ex) {
-            Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
+            myLog.getLoggerE ().log (Level.SEVERE, null, ex);
+            //Logger.getLogger (ServerJuego.class.getName ()).log (Level.SEVERE, null, ex);
         } catch (NoSuchPaddingException e) {
-            e.printStackTrace ();
+            myLog.getLoggerE ().log (Level.SEVERE, null, e);
+            //e.printStackTrace ();
         } catch (InvalidKeyException e) {
-            e.printStackTrace ();
+            myLog.getLoggerE ().log (Level.SEVERE, null, e);
+            //e.printStackTrace ();
         } catch (IllegalBlockSizeException e) {
-            e.printStackTrace ();
+            myLog.getLoggerE ().log (Level.SEVERE, null, e);
+            //e.printStackTrace ();
         } catch (BadPaddingException e) {
-            e.printStackTrace ();
+            myLog.getLoggerE ().log (Level.SEVERE, null, e);
+            //e.printStackTrace ();
         }
 
 
     }
+
 
 
 }

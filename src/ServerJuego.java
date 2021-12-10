@@ -1,28 +1,29 @@
-import javax.crypto.*;
+import Utils.LogMe;
+
 import java.net.*;
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class ServerJuego {
 
-    final int                PUERTO          = 5000;
-    private ServerSocket     Servidor;
-    private Socket           socket;
+    private static LogMe myLog = new LogMe ();
 
+    final int PUERTO = 5000;
+    private ServerSocket Servidor;
+    private Socket socket;
+
+
+
+    public static LogMe getMyLog() {
+        return myLog;
+    }
 
     public static void main(String[] args) throws Exception {
 
         // Crea el servidor
-        ServerJuego s = new ServerJuego();
-        s.initServer();
+        ServerJuego s = new ServerJuego ();
+        s.initServer ();
 
     }
 
@@ -40,32 +41,33 @@ public class ServerJuego {
     //La dinámica del juego es libre, el programador es quien decide como se juega.
 
 
-    public void initServer() throws IOException, ClassNotFoundException
-    {
+    public void initServer() throws IOException, ClassNotFoundException {
 
-        System.out.println("Incializando servidor");
+
+        System.out.println ("Incializando servidor");
+
+        //LOG ACTIVIDAD
+        myLog.getLoggerA ().log (Level.INFO, "Incializando servidor");
 
 
         // Crea el Socket de servicio
-        Servidor = new ServerSocket(PUERTO);
-        socket = new Socket();
-        // Espera conexiÃ³n de un cliente
-        System.out.println("Esperando conexion de jugadores...");
+        Servidor = new ServerSocket (PUERTO);
+        socket = new Socket ();
+        // Espera conexión de un cliente
+        System.out.println ("Esperando conexion de jugadores...");
+
 
 
         while (true) {
-            socket = Servidor.accept();
-            HiloServer comunicacion = new HiloServer(socket);
-            comunicacion.start();
+            socket = Servidor.accept ();
+            HiloServer comunicacion = new HiloServer (socket);
+            comunicacion.start ();
         }
 
 
+
+
     }
-
-
-
-
-
 
 
 }
